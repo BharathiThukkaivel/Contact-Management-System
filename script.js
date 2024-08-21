@@ -1,5 +1,5 @@
 const apiUrl = 'http://localhost:3000/contacts';
-
+let currentEditId = null;
 document.addEventListener('DOMContentLoaded', () => {
   fetchContacts();
 });
@@ -61,12 +61,51 @@ function addContact() {
     });
 }
 
-function editContact(id) {
-  const name = prompt('Enter new name');
-  const email = prompt('Enter new email');
-  const phone = prompt('Enter new phone');
+// function editContact(id) {
+//   const name = prompt('Enter new name');
+//   const email = prompt('Enter new email');
+//   const phone = prompt('Enter new phone');
 
-  fetch(`${apiUrl}/${id}`, {
+//   fetch(`${apiUrl}/${id}`, {
+//     method: 'PUT',
+//     headers: {
+//       'Content-Type': 'application/json'
+//     },
+//     body: JSON.stringify({ name, email, phone })
+//   })
+//     .then(response => response.json())
+//     .then(() => {
+//       fetchContacts();
+//     });
+// }
+
+function editContact(id) {
+  currentEditId = id;
+
+  // Fetch the contact details to pre-fill the form
+  fetch(`${apiUrl}/${id}`)
+    .then(response => response.json())
+    .then(contact => {
+      document.getElementById('editName').value = contact.name;
+      document.getElementById('editEmail').value = contact.email;
+      document.getElementById('editPhone').value = contact.phone;
+
+      // Show the modal
+      document.getElementById('editContactModal').style.display = 'block';
+    });
+}
+
+function closeEditModal() {
+  document.getElementById('editContactModal').style.display = 'none';
+  currentEditId = null;
+}
+
+function updateContact() {
+  const name = document.getElementById('editName').value;
+  const email = document.getElementById('editEmail').value;
+  const phone = document.getElementById('editPhone').value;
+
+  fetch(`${apiUrl}/${currentEditId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'
@@ -75,9 +114,19 @@ function editContact(id) {
   })
     .then(response => response.json())
     .then(() => {
+      closeEditModal();
       fetchContacts();
     });
 }
+
+// Ensure the modal closes when clicking outside of it
+window.onclick = function(event) {
+  const modal = document.getElementById('editContactModal');
+  if (event.target == modal) {
+    modal.style.display = 'none';
+  }
+};
+
 
 function deleteContact(id) {
   fetch(`${apiUrl}/${id}`, {
